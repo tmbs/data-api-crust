@@ -12,6 +12,9 @@
     "license": "MIT",
     "main": "dist/index.js",
     "name": "data-api-crust",
+    "peerDependencies": {
+        "@aws-sdk/client-rds-data": "^3"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/tmbs/data-api-crust.git"
