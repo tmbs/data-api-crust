@@ -19,14 +19,29 @@ export class Crust {
     ) {}
 
     async query(sql: string) {
-        return this.rdsClient.send(
+        const { records, columnMetadata } = await this.rdsClient.send(
             new ExecuteStatementCommand({
                 sql,
                 resourceArn: this.resourceArn,
                 secretArn: this.secretArn,
                 database: this.database,
+                includeResultMetadata: true,
             })
         );
+
+        return records?.map((r) => {
+            const record: { [key: string]: any } = {};
+
+            r.map((v, i) => {
+                const name = columnMetadata?.[i].name;
+
+                if (name) {
+                    record[name!] = v;
+                }
+            });
+
+            return record;
+        });
     }
 }
 
