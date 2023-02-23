@@ -20,6 +20,7 @@
         "url": "https://github.com/tmbs/data-api-crust.git"
     },
     "scripts": {
+        "build": "npx tsc",
         "coverage": "vitest run --coverage",
         "test": "vitest run"
     },

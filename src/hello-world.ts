@@ -1,4 +1,7 @@
-import { RDSDataClient } from "@aws-sdk/client-rds-data";
+import {
+    ExecuteStatementCommand,
+    RDSDataClient,
+} from "@aws-sdk/client-rds-data";
 
 export function sayHello() {
     console.log("hi");
@@ -8,7 +11,23 @@ export function sayGoodbye() {
 }
 
 export class Crust {
-    constructor(private readonly rdsClient: RDSDataClient) {}
+    constructor(
+        private readonly rdsClient: RDSDataClient,
+        private readonly resourceArn: string,
+        private readonly secretArn: string,
+        private readonly database: string
+    ) {}
+
+    async query(sql: string) {
+        return this.rdsClient.send(
+            new ExecuteStatementCommand({
+                sql,
+                resourceArn: this.resourceArn,
+                secretArn: this.secretArn,
+                database: this.database,
+            })
+        );
+    }
 }
 
 type ColumnTypeName =
