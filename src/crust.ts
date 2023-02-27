@@ -2,6 +2,7 @@ import {
     ColumnMetadata,
     ExecuteStatementCommand,
     Field,
+    LongReturnType,
     RDSDataClient,
 } from "@aws-sdk/client-rds-data";
 
@@ -21,8 +22,13 @@ export class Crust {
                 secretArn: this.secretArn,
                 database: this.database,
                 includeResultMetadata: true,
+                resultSetOptions: {
+                    longReturnType: LongReturnType.STRING,
+                },
             })
         );
+
+        console.debug(columnMetadata, records);
 
         if (!columnMetadata) throw new Error("FIXME: no columnMetadata");
 
@@ -47,6 +53,33 @@ export function parse(columns: ColumnMetadata[], rows: Field[][]) {
         return record;
     });
 }
+
+export function parseField(column: ColumnMetadata, field: Field) {
+    if (
+        column.typeName === MySqlDataType.BIGINT_UNSIGNED &&
+        field.stringValue
+    ) {
+        return field.stringValue;
+    } else if (column.typeName === MySqlDataType.BIT && field.booleanValue) {
+        return field.booleanValue;
+    }
+
+    throw new Error("FIXME: alien data type");
+}
+
+enum MySqlDataType {
+    BIGINT_UNSIGNED = "BIGINT UNSIGNED",
+    BIT = "BIT",
+}
+
+// type FieldValueType =
+//     | "arrayValue"
+//     | "blobValue"
+//     | "booleanValue"
+//     | "doubleValue"
+//     | "isNull"
+//     | "longValue"
+//     | "stringValue";
 
 // FIXME: clean up
 
