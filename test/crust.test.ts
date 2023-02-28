@@ -1,12 +1,17 @@
 import { describe, it, expect, test } from "vitest";
-import { parse, parseField } from "../src/crust";
+import {
+    parse,
+    _buildParser,
+    _parseBooleanField,
+    _parseIntegerField,
+} from "../src/crust";
 
-describe.concurrent("parse()", () => {
+describe.concurrent("_buildParser()", () => {
     const tests = [
         {
             name: "BIGINT UNSIGNED",
-            input: {
-                column: {
+            input: [
+                {
                     arrayBaseColumnType: 0,
                     isAutoIncrement: true,
                     isCaseSensitive: false,
@@ -22,14 +27,13 @@ describe.concurrent("parse()", () => {
                     type: -5,
                     typeName: "BIGINT UNSIGNED",
                 },
-                field: { stringValue: "1" },
-            },
-            result: "1",
+            ],
+            expected: [_parseIntegerField],
         },
         {
             name: "BIT",
-            input: {
-                column: {
+            input: [
+                {
                     arrayBaseColumnType: 0,
                     isAutoIncrement: false,
                     isCaseSensitive: false,
@@ -45,23 +49,52 @@ describe.concurrent("parse()", () => {
                     type: -7,
                     typeName: "BIT",
                 },
-                field: { booleanValue: true },
-            },
-            result: true,
+            ],
+            expected: [_parseBooleanField],
         },
     ];
 
     for (const test of tests) {
         it(test.name, () => {
-            expect(parseField(test.input.column, test.input.field)).toEqual(
-                test.result
-            );
+            expect(_buildParser(test.input)).toEqual(test.expected);
         });
     }
 });
 
 test.skip("Crust.parse()", () => {
     const columns = [
+        {
+            arrayBaseColumnType: 0,
+            isAutoIncrement: true,
+            isCaseSensitive: false,
+            isCurrency: false,
+            isSigned: false,
+            label: "s",
+            name: "s",
+            nullable: 0,
+            precision: 20,
+            scale: 0,
+            schemaName: "",
+            tableName: "reference",
+            type: -5,
+            typeName: "BIGINT UNSIGNED",
+        },
+        {
+            arrayBaseColumnType: 0,
+            isAutoIncrement: false,
+            isCaseSensitive: false,
+            isCurrency: false,
+            isSigned: false,
+            label: "b",
+            name: "b",
+            nullable: 1,
+            precision: 2,
+            scale: 0,
+            schemaName: "",
+            tableName: "reference",
+            type: -7,
+            typeName: "BIT",
+        },
         {
             arrayBaseColumnType: 0,
             isAutoIncrement: false,
@@ -482,6 +515,8 @@ test.skip("Crust.parse()", () => {
 
     const rows = [
         [
+            { stringValue: "1" },
+            { booleanValue: true },
             { stringValue: "-3" },
             { stringValue: "4" },
             { booleanValue: false },

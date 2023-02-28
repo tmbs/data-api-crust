@@ -54,22 +54,75 @@ export function parse(columns: ColumnMetadata[], rows: Field[][]) {
     });
 }
 
-export function parseField(column: ColumnMetadata, field: Field) {
-    if (
-        column.typeName === MySqlDataType.BIGINT_UNSIGNED &&
-        field.stringValue
-    ) {
-        return field.stringValue;
-    } else if (column.typeName === MySqlDataType.BIT && field.booleanValue) {
-        return field.booleanValue;
-    }
+type Parser = ((field: Field) => any)[];
 
-    throw new Error("FIXME: alien data type");
+export function _buildParser(columns: ColumnMetadata[]): Parser {
+    return columns.map((c) => {
+        switch (c.typeName) {
+            case MySqlDataTypeName.BIGINT_UNSIGNED:
+                return _parseIntegerField;
+            case MySqlDataTypeName.BIT:
+                return _parseBooleanField;
+            default:
+                throw new Error("FIXME: implemented");
+        }
+    });
 }
 
-enum MySqlDataType {
+enum MySqlDataTypeName {
+    BIGINT = "BIGINT",
     BIGINT_UNSIGNED = "BIGINT UNSIGNED",
     BIT = "BIT",
+    CHAR = "CHAR",
+    DATE = "DATE",
+    DATETIME = "DATETIME",
+    DECIMAL = "DECIMAL",
+    DECIMAL_UNSIGNED = "DECIMAL UNSIGNED",
+    DOUBLE = "DOUBLE",
+    DOUBLE_UNSIGNED = "DOUBLE UNSIGNED",
+    FLOAT = "FLOAT",
+    FLOAT_UNSIGNED = "FLOAT UNSIGNED",
+    INT = "INT",
+    INT_UNSIGNED = "INT UNSIGNED",
+    JSON = "JSON",
+    MEDIUMINT = "MEDIUMINT",
+    MEDIUMINT_UNSIGNED = "MEDIUMINT UNSIGNED",
+    SMALLINT = "SMALLINT",
+    SMALLINT_UNSIGNED = "SMALLINT UNSIGNED",
+    TEXT = "TEXT",
+    TIME = "TIME",
+    TIMESTAMP = "TIMESTAMP",
+    TINYINT = "TINYINT",
+    TINYINT_UNSIGNED = "TINYINT UNSIGNE",
+    VARCHAR = "VARCHAR",
+    YEAR = "YEAR",
+}
+
+// FIXME: null value handling
+
+export function _parseBooleanField(field: Field) {
+    if (!field.booleanValue) throw new Error("FIXME: wrong field");
+
+    return field.booleanValue;
+}
+
+export function _parseFloatField(field: Field) {
+    if (!field.doubleValue) throw new Error("FIXME: wrong field");
+
+    return field.doubleValue;
+}
+
+// NOTE: Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER
+export function _parseIntegerField(field: Field) {
+    if (!field.stringValue) throw new Error("FIXME: wrong field");
+
+    return Number.parseInt(field.stringValue);
+}
+
+export function _parseStringField(field: Field) {
+    if (!field.stringValue) throw new Error("FIXME: wrong field");
+
+    return field.stringValue;
 }
 
 // type FieldValueType =
@@ -82,14 +135,6 @@ enum MySqlDataType {
 //     | "stringValue";
 
 // FIXME: clean up
-
-// type ColumnTypeName =
-//     | "BIGINT UNSIGNED"
-//     | "BIT"
-//     | "CHAR"
-//     | "INT UNSIGNED"
-//     | "JSON"
-//     | "TIMESTAMP";
 
 // type ColumnMetadata = {
 //     arrayBaseColumnType: number;
