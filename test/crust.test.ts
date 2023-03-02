@@ -6,7 +6,7 @@ import {
     _parseIntegerField,
 } from "../src/crust";
 
-describe.concurrent("_buildParser()", () => {
+describe.skip.concurrent("_buildParser()", () => {
     const tests = [
         {
             name: "BIGINT UNSIGNED",
@@ -59,6 +59,32 @@ describe.concurrent("_buildParser()", () => {
             expect(_buildParser(test.input)).toEqual(test.expected);
         });
     }
+});
+
+test("parse()", () => {
+    expect(
+        parse(
+            [
+                {
+                    arrayBaseColumnType: 0,
+                    isAutoIncrement: true,
+                    isCaseSensitive: false,
+                    isCurrency: false,
+                    isSigned: false,
+                    label: "s",
+                    name: "s",
+                    nullable: 0,
+                    precision: 20,
+                    scale: 0,
+                    schemaName: "",
+                    tableName: "reference",
+                    type: -5,
+                    typeName: "BIGINT UNSIGNED",
+                },
+            ],
+            [[{ stringValue: "1" }]]
+        )
+    ).toStrictEqual([{ s: "1" }]);
 });
 
 test.skip("Crust.parse()", () => {

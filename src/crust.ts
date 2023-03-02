@@ -39,19 +39,27 @@ export class Crust {
 }
 
 export function parse(columns: ColumnMetadata[], rows: Field[][]) {
-    return rows?.map((r) => {
-        const record: { [key: string]: any } = {};
+    return rows?.map((r) =>
+        r.reduce((a: Record<string, any>, f, i) => {
+            a[columns[i].name!] = f.arrayValue
+                ? f.arrayValue
+                : f.blobValue
+                ? f.blobValue
+                : f.booleanValue
+                ? f.booleanValue
+                : f.doubleValue
+                ? f.doubleValue
+                : f.isNull
+                ? f.isNull
+                : f.longValue
+                ? f.longValue
+                : f.stringValue
+                ? f.stringValue
+                : "FIXME:";
 
-        r.map((v, i) => {
-            const name = columns?.[i].name;
-
-            if (name) {
-                record[name!] = v;
-            }
-        });
-
-        return record;
-    });
+            return a;
+        }, {})
+    );
 }
 
 type Parser = ((field: Field) => any)[];
