@@ -1,7 +1,6 @@
 import { describe, it, expect, test } from "vitest";
 import {
     parse,
-    _buildParser,
     _parseBooleanField,
     _parseIntegerField,
 } from "../src/crust";

@@ -39,41 +39,39 @@ export class Crust {
 }
 
 export function parse(columns: ColumnMetadata[], rows: Field[][]) {
+    const parser = _buildRowParser(columns);
+
     return rows?.map((r) =>
         r.reduce((a: Record<string, any>, f, i) => {
-            a[columns[i].name!] = f.arrayValue
-                ? f.arrayValue
-                : f.blobValue
-                ? f.blobValue
-                : f.booleanValue
-                ? f.booleanValue
-                : f.doubleValue
-                ? f.doubleValue
-                : f.isNull
-                ? f.isNull
-                : f.longValue
-                ? f.longValue
-                : f.stringValue
-                ? f.stringValue
-                : "FIXME:";
-
+            a[parser[i].columnName] = parser[i].parser(f);
             return a;
         }, {})
     );
 }
 
-type Parser = ((field: Field) => any)[];
+type ColumnParser = {
+    columnName: string;
+    parser: (field: Field) => any;
+};
 
-export function _buildParser(columns: ColumnMetadata[]): Parser {
+export function _buildRowParser(columns: ColumnMetadata[]): ColumnParser[] {
     return columns.map((c) => {
-        switch (c.typeName) {
-            case MySqlDataTypeName.BIGINT_UNSIGNED:
-                return _parseIntegerField;
-            case MySqlDataTypeName.BIT:
-                return _parseBooleanField;
-            default:
-                throw new Error("FIXME: implemented");
+        if (!c.name) {
+            throw new Error("FIXME: where's the column name?");
+        } else if (!c.typeName) {
+            throw new Error("FIXME: where's the column data type?");
         }
+
+        const parser = dataTypeParsers.get(c.typeName);
+
+        if (!parser) {
+            throw new Error(`FIXME: where's ${c.typeName} parser?`);
+        }
+
+        return {
+            columnName: c.name,
+            parser,
+        };
     });
 }
 
@@ -101,10 +99,39 @@ enum MySqlDataTypeName {
     TIME = "TIME",
     TIMESTAMP = "TIMESTAMP",
     TINYINT = "TINYINT",
-    TINYINT_UNSIGNED = "TINYINT UNSIGNE",
+    TINYINT_UNSIGNED = "TINYINT UNSIGNED",
     VARCHAR = "VARCHAR",
     YEAR = "YEAR",
 }
+
+const dataTypeParsers = new Map<string, (field: Field) => any>([
+    [MySqlDataTypeName.BIGINT_UNSIGNED, _parseStringField],
+    [MySqlDataTypeName.BIGINT, _parseBigIntegerField],
+    [MySqlDataTypeName.BIT, _parseBooleanField],
+    [MySqlDataTypeName.CHAR, _parseStringField],
+    [MySqlDataTypeName.DATE, _parseStringField],
+    [MySqlDataTypeName.DATETIME, _parseStringField],
+    [MySqlDataTypeName.DECIMAL_UNSIGNED, _parseFloatField],
+    [MySqlDataTypeName.DECIMAL, _parseFloatField],
+    [MySqlDataTypeName.DOUBLE_UNSIGNED, _parseFloatField],
+    [MySqlDataTypeName.DOUBLE, _parseFloatField],
+    [MySqlDataTypeName.FLOAT_UNSIGNED, _parseFloatField],
+    [MySqlDataTypeName.FLOAT, _parseFloatField],
+    [MySqlDataTypeName.INT_UNSIGNED, _parseIntegerField],
+    [MySqlDataTypeName.INT, _parseIntegerField],
+    [MySqlDataTypeName.JSON, _parseBigIntegerField],
+    [MySqlDataTypeName.MEDIUMINT_UNSIGNED, _parseIntegerField],
+    [MySqlDataTypeName.MEDIUMINT, _parseIntegerField],
+    [MySqlDataTypeName.SMALLINT_UNSIGNED, _parseIntegerField],
+    [MySqlDataTypeName.SMALLINT, _parseIntegerField],
+    [MySqlDataTypeName.TEXT, _parseStringField],
+    [MySqlDataTypeName.TIME, _parseStringField],
+    [MySqlDataTypeName.TIMESTAMP, _parseStringField],
+    [MySqlDataTypeName.TINYINT_UNSIGNED, _parseIntegerField],
+    [MySqlDataTypeName.TINYINT, _parseIntegerField],
+    [MySqlDataTypeName.VARCHAR, _parseStringField],
+    [MySqlDataTypeName.YEAR, _parseStringField],
+]);
 
 // FIXME: null value handling
 
@@ -131,6 +158,18 @@ export function _parseStringField(field: Field) {
     if (!field.stringValue) throw new Error("FIXME: wrong field");
 
     return field.stringValue;
+}
+
+export function _parseBigIntegerField(field: Field) {
+    if (!field.stringValue) throw new Error("FIXME: wrong field");
+
+    return BigInt(field.stringValue);
+}
+
+export function _parseJsonField(field: Field) {
+    if (!field.stringValue) throw new Error("FIXME: wrong field");
+
+    return JSON.parse(field.stringValue);
 }
 
 // type FieldValueType =
