@@ -119,7 +119,7 @@ const dataTypeParsers = new Map<string, (field: Field) => any>([
     [MySqlDataTypeName.FLOAT, _parseFloatField],
     [MySqlDataTypeName.INT_UNSIGNED, _parseIntegerField],
     [MySqlDataTypeName.INT, _parseIntegerField],
-    [MySqlDataTypeName.JSON, _parseBigIntegerField],
+    [MySqlDataTypeName.JSON, _parseJsonField],
     [MySqlDataTypeName.MEDIUMINT_UNSIGNED, _parseIntegerField],
     [MySqlDataTypeName.MEDIUMINT, _parseIntegerField],
     [MySqlDataTypeName.SMALLINT_UNSIGNED, _parseIntegerField],
